@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: neuro_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=neuroassist_v3
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: neuro_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/neuroassist_v3
+      - JWT_SECRET=your_super_secret_jwt_key_here
+      - ASSEMBLYAI_API_KEY=your_assemblyai_key_here
+      - GEMINI_API_KEY=your_gemini_key_here
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+
+  gateway:
+    image: nginx:alpine
+    container_name: neuro_gateway
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./uploads:/app/uploads
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
