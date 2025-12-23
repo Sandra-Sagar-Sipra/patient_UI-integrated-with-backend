@@ -76,10 +76,15 @@ pytest tests/test_live_chain.py
 ## 📡 Key Endpoints
 
 ### Auth
-*   `POST /api/v1/auth/signup`: Create user and profile
-*   `POST /api/v1/auth/login`: Get JWT Bearer token
-*   `GET /api/v1/auth/me`: Get current user details
+*   `POST /api/v1/auth/signup`: **User Registration** (Creates User & Patient/Doctor Profile)
+*   `POST /api/v1/auth/login`: **Authentication** (Returns JWT Bearer Token)
+*   `GET /api/v1/auth/me`: **Context** (Retrieves current authenticated user details)
 
-### Clinical Sessions
-*   `POST /api/v1/consultations/{id}/upload`: Upload audio -> Trigger Background Processing
-*   `GET /api/v1/consultations/{id}`: Poll status (`IN_PROGRESS` -> `COMPLETED`)
+### Clinical Sessions & AI Integration
+*   `POST /api/v1/consultations/{id}/upload`: **Audio Ingestion**
+    *   *Internal Function*: Securely stores file and creates `AudioFile` record.
+    *   *External Service*: Triggers **AssemblyAI Upload** & **Transcription** (`v2/transcript`).
+    *   *AI Features Used*: Speaker Diarization, PII Redaction, Medical Word Boost.
+*   `GET /api/v1/consultations/{id}`: **Status Polling**
+    *   *Function*: Returns current state (`IN_PROGRESS`, `COMPLETED`).
+    *   *Result*: Delivers the final transcript and confidence scores once AI processing is finished.
