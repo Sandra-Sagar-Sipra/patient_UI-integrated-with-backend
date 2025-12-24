@@ -18,7 +18,7 @@ This is the refactored clinical backend migrated from Node.js to Python FastAPI,
 1.  **Configure Environment**:
     Edit the `environment` section in `docker-compose.yml` with your API keys:
     *   `ASSEMBLYAI_API_KEY` (Required)
-    *   `GOOGLE_API_KEY` (Required for future LLM enablement)
+    *   `GOOGLE_API_KEY` (Required for LLM Features - SOAP Notes)
 
 2.  **Run with Docker Compose**:
     ```bash
@@ -39,7 +39,8 @@ The system will be accessible at:
 
 2.  **Setup Environment**:
     Create a `.env` file based on `.env.example`.
-    *   Ensure `ASSEMBLYAI_API_KEY` is set.
+    *   **SECURITY NOTE**: Never commit your `.env` file. It is gitignored.
+    *   Fill in `ASSEMBLYAI_API_KEY` and `GOOGLE_API_KEY` with your actual secrets.
     *   `DATABASE_URL` defaults to PostgreSQL.
 
 3.  **Run the Server**:
@@ -71,7 +72,7 @@ pytest tests/test_live_chain.py
 *   **Security**: JWT (OAuth2) with Role-Based Access Control
 *   **AI Layer**: 
     *   **STT**: Official AssemblyAI Python SDK (with Word Boost)
-    *   **LLM**: Google Generative AI (Gemini) SDK (Codebase prepared, Functionality Paused)
+    *   **LLM**: Google Generative AI (Gemini 2.0 Flash) SDK (Active)
 *   **Gateway**: Nginx (Reverse Proxy, Static File Serving)
 
 ## 📡 Key Endpoints
