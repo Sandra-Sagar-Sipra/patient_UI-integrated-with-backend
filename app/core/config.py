@@ -4,7 +4,7 @@ from pydantic import model_validator
 from typing import List, Optional
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env.example", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     DATABASE_URL: str
     JWT_SECRET: str
