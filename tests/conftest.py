@@ -42,3 +42,17 @@ def init_db():
 def client(init_db):
     with TestClient(app) as c:
         yield c
+
+import json
+@pytest.fixture
+def mock_soap_cases():
+    """
+    Loads mock SOAP data from fixtures/mock_soap_data.json
+    for offline testing of Triage, Queue, and Safety.
+    """
+    file_path = "fixtures/mock_soap_data.json"
+    if not os.path.exists(file_path):
+        return []
+        
+    with open(file_path, "r") as f:
+        return json.load(f)

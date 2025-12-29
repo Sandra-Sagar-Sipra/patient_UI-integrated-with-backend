@@ -1,10 +1,13 @@
 from sqlmodel import Session, select
 from app.core.db import engine
-from app.models.base import Consultation, ConsultationStatus, AudioFile, SOAPNote, PatientProfile
+from app.models.base import Consultation, ConsultationStatus, AudioFile, SOAPNote, PatientProfile, AILog
 from app.services.stt_service import AssemblyAIService
 from app.services.llm_service import GeminiService
+from app.services.triage_service import TriageService
+from app.services.safety_service import SafetyService
 from uuid import UUID
 import asyncio
+import time
 
 async def process_consultation_flow(consultation_id: UUID):
     """
@@ -70,8 +73,28 @@ async def process_consultation_flow(consultation_id: UUID):
             
             # 4. Generate SOAP (Gemini) - ENABLED
             print("Generating SOAP note...")
-            soap_data = await GeminiService.generate_soap_note_async(transcript_text, utterances, patient_context)
-            
+            start_time = time.time()
+            try:
+                soap_data = await GeminiService.generate_soap_note_async(transcript_text, utterances, patient_context)
+                latency = (time.time() - start_time) * 1000
+                
+                # Log Success
+                session.add(AILog(
+                    consultation_id=consultation.id,
+                    model_version="gemini-2.0-flash",
+                    status="SUCCESS",
+                    latency_ms=latency
+                ))
+            except Exception as llm_error:
+                # Log LLM Failure but allow flow to fail gracefully if needed (here we catch to log, then re-raise or handle)
+                session.add(AILog(
+                    consultation_id=consultation.id,
+                    model_version="gemini-2.0-flash",
+                    status="FAIL",
+                    error_message=str(llm_error)
+                ))
+                raise llm_error
+
             soap_content = soap_data.get("soap_note", {})
             risk_flags = soap_data.get("risk_flags", [])
             
@@ -85,6 +108,21 @@ async def process_consultation_flow(consultation_id: UUID):
             )
             session.add(soap_note)
             
+            # --- NEW: Phase 2 Logic ---
+            # 5a. Triage Analysis
+            if patient_profile:
+                urgency, category = TriageService.calculate_urgency(soap_note, patient_profile)
+                consultation.urgency_score = urgency
+                consultation.triage_category = category
+                print(f"Triage Result: {category} (Score: {urgency})")
+            
+            # 5b. Safety Checks
+            if patient_profile:
+                warnings = SafetyService.check_drug_interactions(soap_note, patient_profile)
+                consultation.safety_warnings = warnings
+                if warnings:
+                    print(f"Safety Warnings Found: {len(warnings)}")
+
             # 6. Update Final Status
             consultation.status = ConsultationStatus.COMPLETED
             session.add(consultation)
@@ -96,8 +134,9 @@ async def process_consultation_flow(consultation_id: UUID):
             print(f"Processing failed: {e}")
             # Set status to FAILED so we can track errors in DB
             consultation.status = ConsultationStatus.FAILED
-            # Optionally store the error message in notes or a separate column if available. 
-            # For now, just marking as FAILED is sufficient for the test.
+            consultation.requires_manual_review = True # Flag for Manual Intervention
+            
+            # Log General Failure if not logged by LLM block
             session.add(consultation)
             session.commit()
 

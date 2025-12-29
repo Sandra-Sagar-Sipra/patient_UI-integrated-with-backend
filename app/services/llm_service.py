@@ -7,12 +7,23 @@ from app.core.config import settings
 # Configure global API key
 genai.configure(api_key=settings.GOOGLE_API_KEY)
 
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
+import logging
+
+logger = logging.getLogger(__name__)
+
 class GeminiService:
     @staticmethod
+    @retry(
+        stop=stop_after_attempt(5), # Increased attempts for quota
+        wait=wait_exponential(multiplier=2, min=4, max=60), # Exponential backoff: 4s, 8s, 16s, 32s, 60s
+        reraise=True
+    )
     async def generate_soap_note_async(transcript_text: str, speaker_labels: List[Dict[str, Any]] = None, patient_context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Generates a structured SOAP note from the transcript using Gemini.
         Returns a dictionary matching the SOAP note schema.
+        Includes robust retry logic for 429 Quota errors.
         """
         # Construct a speaker-aware transcript if labels are provided
         formatted_transcript = transcript_text
@@ -74,25 +85,17 @@ class GeminiService:
         # Offload the blocking API call to a thread
         loop = asyncio.get_event_loop()
         
-        # Simple Retry Logic for 429 Errors
-        max_retries = 3
-        base_delay = 5
-        
-        for attempt in range(max_retries):
-            try:
-                response = await loop.run_in_executor(
-                    None, 
-                    lambda: model.generate_content(prompt)
-                )
-                break # Success
-            except Exception as e:
-                is_quota = "429" in str(e) or "quota" in str(e).lower() or "resource exhausted" in str(e).lower()
-                if is_quota and attempt < max_retries - 1:
-                    wait_time = base_delay * (2 ** attempt) # 5s, 10s
-                    print(f"⚠️ Quota Warning: Retrying LLM in {wait_time}s... (Attempt {attempt+1}/{max_retries})")
-                    await asyncio.sleep(wait_time)
-                else:
-                    raise Exception(f"Gemini generation failed after {attempt+1} attempts: {str(e)}")
+        try:
+            print("   (Gemini) Sending request...")
+            response = await loop.run_in_executor(
+                None, 
+                lambda: model.generate_content(prompt)
+            )
+        except Exception as e:
+            # Check for quota errors to print explicit warning (Tenacity handles the retry)
+            if "429" in str(e) or "quota" in str(e).lower() or "resource exhausted" in str(e).lower():
+                print(f"   ⚠️ Quota Limit Hit (429). Retrying in background...")
+            raise e
         
         try:
             # Parse JSON result

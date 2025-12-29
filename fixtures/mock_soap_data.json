@@ -1,0 +1,68 @@
+[
+    {
+        "filename": "day4_consultation06_patient.wav",
+        "patient_profile": {
+            "first_name": "Sarah",
+            "last_name": "Connor",
+            "medical_history": "History of anxiety and depression."
+        },
+        "soap_note": {
+            "subjective": "Patient reports increasing feelings of hopelessness and thoughts of self-harm. States 'I can't take it anymore'. Also complains of sharp chest pain radiating to left arm.",
+            "objective": "Patient appears visibly distressed, tearful. BP 150/95 determined from recent records.",
+            "assessment": "Major Depressive Episode with Suicidal Ideation. Potential Acute Coronary Syndrome (Chest Pain).",
+            "plan": "1. Immediate transfer to Emergency Department for cardiac evaluation and psychiatric crisis intervention.\n2. Contact emergency contact."
+        },
+        "risk_flags": [
+            "Suicide Risk",
+            "Chest Pain",
+            "Emergency"
+        ]
+    },
+    {
+        "filename": "day1_consultation01_patient.wav",
+        "patient_profile": {
+            "first_name": "John",
+            "last_name": "Smith",
+            "medical_history": "Peptic Ulcer Disease, Hypertension."
+        },
+        "soap_note": {
+            "subjective": "Patient complains of severe joint pain in knees and hips. States he has been taking OTC painkillers frequently. Also mentions dark, tarry stools.",
+            "objective": "Tenderness in loose joints.",
+            "assessment": "Osteoarthritis flare. GI Bleeding suspect due to NSAID use.",
+            "plan": "1. Stop NSAIDs immediately.\n2. Prescribe Aspirin 81mg for heart protection (Patient request - NEEDS REVIEW).\n3. Referral to GI specialist."
+        },
+        "risk_flags": []
+    },
+    {
+        "filename": "day3_consultation03_patient.wav",
+        "patient_profile": {
+            "first_name": "Emily",
+            "last_name": "Blunt",
+            "medical_history": "Asthma."
+        },
+        "soap_note": {
+            "subjective": "Patient came in for a routine refill of inhalers. No acute complaints. Feeling well.",
+            "objective": "Lungs clear on auscultation.",
+            "assessment": "Stable Asthma.",
+            "plan": "1. Refill Albuterol inhaler.\n2. Follow up in 6 months."
+        },
+        "risk_flags": []
+    },
+    {
+        "filename": "day2_consultation05_patient.wav",
+        "patient_profile": {
+            "first_name": "Michael",
+            "last_name": "Scott",
+            "medical_history": "None."
+        },
+        "soap_note": {
+            "subjective": "Patient reports burned foot on a George Foreman grill. Pain is 5/10. Redness and blistering.",
+            "objective": "Second degree burn on righ foot.",
+            "assessment": "Thermal Burn.",
+            "plan": "1. Clean and dress wound.\n2. Prescribe Silver Sulfadiazine cream."
+        },
+        "risk_flags": [
+            "Burn"
+        ]
+    }
+]

@@ -51,6 +51,7 @@ class PatientProfile(SQLModel, table=True):
     city: Optional[str] = None
     state: Optional[str] = None
     zip_code: Optional[str] = None
+    medical_history: Optional[str] = None # Added for Safety Service
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -106,6 +107,12 @@ class ConsultationStatus(str, Enum):
     CANCELLED = "CANCELLED"
     FAILED = "FAILED"
 
+class TriageCategory(str, Enum):
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MODERATE = "MODERATE"
+    LOW = "LOW"
+
 class Consultation(SQLModel, table=True):
     __tablename__ = "consultations"
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -118,6 +125,10 @@ class Consultation(SQLModel, table=True):
     notes: Optional[str] = None
     diagnosis: Optional[str] = None
     prescription: Optional[str] = None
+    urgency_score: Optional[int] = None
+    triage_category: Optional[TriageCategory] = None
+    safety_warnings: Optional[List[dict]] = Field(default=None, sa_column=Column(JSON))
+    requires_manual_review: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -158,3 +169,13 @@ class SOAPNote(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     consultation: Consultation = Relationship(back_populates="soap_note")
+
+class AILog(SQLModel, table=True):
+    __tablename__ = "ai_logs"
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    consultation_id: Optional[UUID] = Field(foreign_key="consultations.id", nullable=True)
+    model_version: str
+    status: str # SUCCESS, FAIL
+    latency_ms: Optional[float] = None
+    error_message: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

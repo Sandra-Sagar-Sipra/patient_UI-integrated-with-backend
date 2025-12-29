@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import auth, appointments, consultations
+from app.api.v1 import auth, appointments, consultations, dashboard
 from app.core.config import settings
 from app.core.db import init_db
 
@@ -24,6 +24,7 @@ if settings.CORS_ORIGINS:
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(appointments.router, prefix="/api/v1/appointments", tags=["Appointments"])
 app.include_router(consultations.router, prefix="/api/v1/consultations", tags=["Consultations"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 
 @app.on_event("startup")
 def on_startup():

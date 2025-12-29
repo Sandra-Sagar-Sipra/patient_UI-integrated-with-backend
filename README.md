@@ -12,6 +12,8 @@ This is the refactored clinical backend migrated from Node.js to Python FastAPI,
 *   **Context Injection**: Automatically incorporates patient demographics (Age, Gender, History) into the prompt.
 *   **Resilience**: Robust error handling for corrupt file uploads and network issues.
 *   **Verification**: Comprehensive automated test suite for End-to-End validation.
+*   **Smart Triage (New)**: AI-driven urgency scoring and patient prioritization.
+*   **Clinical Safety (New)**: Automated drug-condition contraindication checks.
 
 ## 🚀 Quick Start (Docker - Recommended)
 
@@ -63,6 +65,14 @@ pytest tests/test_live_chain.py
 *   `tests/test_live_chain.py`: Full End-to-End Smoke Test & Resilience Test.
 *   `tests/test_live_stt.py`: Targeted unit test for AssemblyAI accuracy and configuration.
 *   `tests/verify_flow.py`: Mocked validation script for logic testing.
+*   `tests/verify_resilience.py`: Verifies Retry logic and Manual Review queue.
+
+### Offline Testing (Quota-Free)
+To test Dashboard logic without consuming API credits:
+```bash
+python demo_offline.py
+```
+This runs a simulation using pre-generated SOAP notes.
 
 ## 🏗️ Architecture Summary
 
@@ -74,6 +84,25 @@ pytest tests/test_live_chain.py
     *   **STT**: Official AssemblyAI Python SDK (with Word Boost)
     *   **LLM**: Google Generative AI (Gemini 2.0 Flash) SDK (Active)
 *   **Gateway**: Nginx (Reverse Proxy, Static File Serving)
+
+## 🩺 Phase 2: Triage, Safety & Resilience
+
+### 1. Smart Triage Algorithm
+*   **Logic**: Analyzes SOAP notes for "Risk Flags" (e.g., Suicide, Chest Pain).
+*   **Scoring**:
+    *   **CRITICAL (90+)**: Immediate threats (Suicide, Stroke).
+    *   **HIGH (70-89)**: Severe symptoms (High Fever, Severe Pain).
+    *   **MODERATE (40-69)**: Acute but stable (Infection, Burn).
+    *   **LOW (0-39)**: Routine checkups.
+
+### 2. Drug Safety Net
+*   **Mechanism**: Cross-references Prescriptions (Plan) vs. Patient History.
+*   **Example**: Prescribing *Aspirin* to a patient with *Ulcers* triggers a `WARNING`.
+
+### 3. Resilience & Fail-Safe
+*   **Zero-Loss Guarantee**: If AI processing fails (e.g., API Quota Exceeded), patients are **not lost**.
+*   **Retry Logic**: Exponential Backoff (up to 60s) handles traffic bursts.
+*   **Manual Review**: Persistent failures land in a dedicated "Requires Review" queue.
 
 ## Verification & Accuracy 📊
 This project includes a robust suite for validating AI performance.
@@ -104,6 +133,15 @@ The system utilizes AssemblyAI for transcription and supports the following audi
 
 *Note: Project files (e.g., `.flp`, `.logicx`) or MIDI files are NOT supported.*
 
+## ⚠️ Known Limits & Future Scaling
+While robust for pilot usage, the current architecture has known limits to be addressed in the Enterprise Phase:
+
+| Limit Category | Risk Description | Planned Mitigation |
+| :--- | :--- | :--- |
+| **Server Restarts** | In-memory tasks (`BackgroundTasks`) die if the server crashes/restarts. | Migrate to **Celery + Redis** for durable job queues. |
+| **Local Storage** | Audio saved to disk (`/uploads`) limits horizontal scaling. | Migrate to **AWS S3 / GCS** for cloud storage. |
+| **Concurrency** | Heavy load (1000+ users) may exhaust DB connections. | Implement **PgBouncer** connection pooling. |
+
 ## 📡 Key Endpoints
 
 ### Auth
@@ -119,3 +157,9 @@ The system utilizes AssemblyAI for transcription and supports the following audi
 *   `GET /api/v1/consultations/{id}`: **Status Polling**
     *   *Function*: Returns current state (`IN_PROGRESS`, `COMPLETED`).
     *   *Result*: Delivers the final transcript and confidence scores once AI processing is finished.
+
+### Dashboard & Operations
+*   `GET /api/v1/dashboard/queue`: **Smart Queue**
+    *   Returns list of completed patients sorted by **Urgency** (Critical first).
+*   `GET /api/v1/dashboard/queue/failed`: **Review Queue**
+    *   Returns patients where AI failed (Quota/Error) and require manual triage.
