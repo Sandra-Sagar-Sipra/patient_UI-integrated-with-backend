@@ -19,8 +19,9 @@ def create_appointment(
     if current_user.role != UserRole.PATIENT:
         raise HTTPException(status_code=403, detail="Only patients can book appointments")
     
-    # Validate scheduled time is in the future
-    if payload.scheduled_at <= datetime.now(timezone.utc):
+    # Validate scheduled time is not in the past (allow same-day future times)
+    now = datetime.now(timezone.utc)
+    if payload.scheduled_at < now:
         raise HTTPException(status_code=400, detail="Cannot book appointment in the past")
     
     # Merge symptoms from reason or notes
