@@ -23,6 +23,20 @@ class Token(BaseModel):
     token_type: str
     role: str
 
+@router.get("/check-email")
+def check_email_exists(
+    email: str,
+    session: Session = Depends(get_session)
+):
+    """Check if an email already exists in the database."""
+    user = session.exec(
+        select(User).where(User.email == email)
+    ).first()
+    
+    return {
+        "exists": bool(user)
+    }
+
 @router.post("/signup", response_model=dict)
 def signup(user_in: UserCreate, session: Session = Depends(get_session)):
     # Check if user exists

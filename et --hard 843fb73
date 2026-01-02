@@ -1,0 +1,18 @@
+[33maa8d6db[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge branch 'main' of https://github.com/Sandra-Sagar-Sipra/DB-API_Integrated_NeuroAssist
+[33m843fb73[m Initial commit - Patient UI integrated with backend
+[33md425b55[m fix: Optimize PII Redaction to Identity-Only (Preserve Clinical Data)
+[33ma1f2812[m test: Add verification scripts for AI Layer and API Completeness
+[33m568ca8c[m chore: Upgrade LLM to Gemini 2.5 Flash as requested
+[33m9b49f92[m feat: Implement Phase 2 Features (Triage, Safety, Queue API, Resilience)
+[33m2a71f75[m feat: Complete AI Metrics, Security Scrubbing, and Docs Update
+[33mc919888[m docs: Update metrics report with LLM verification results
+[33m4fbe999[m docs: Update README with Security Note and active Gemini 2.0 status
+[33m55afbbd[m chore: Secure API keys in env.example and revert config loader
+[33mcd47956[m docs: Update README to reflect enabled Gemini 2.0 LLM
+[33m66ed05e[m feat: Integrate Context-Aware Gemini 2.0 Flash for SOAP Notes
+[33m2501db0[m Update .env.example
+[33m0c07a98[m docs: Add implementation plans, test plans, and metrics reports
+[33m610b0c2[m chore: Remove test database artifact
+[33m8ced973[m docs: Update endpoint documentation with AssemblyAI details
+[33m0dc719f[m feat: Integrated STT with Word Boost, Disabled LLM, Added Verification Suite
+[33m146554f[m feat: Implement Consultation Service with audio upload and async processing
